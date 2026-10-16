@@ -38,7 +38,7 @@ public class LoginController {
 
         Usuario usuario = autenticacionService.autenticathe(filter);
 
-        // Verificar las credenciales
+        ////////////////////////////sver usuario verificar
         if (usuario == null) {
             flash.addFlashAttribute(
                 "mensaje",
@@ -47,7 +47,7 @@ public class LoginController {
             return "redirect:/";
         }
 
-        // Verificar si el usuario está activo
+        ///////////////////////////
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
             flash.addFlashAttribute(
                 "mensaje",
@@ -56,7 +56,6 @@ public class LoginController {
             return "redirect:/";
         }
 
-        // Guardar los datos del usuario en la sesión
         session.setAttribute("idUsuario", usuario.getIdUsuario());
         session.setAttribute("fullName", usuario.getFullName());
 
@@ -67,7 +66,7 @@ public class LoginController {
             );
         }
 
-        // Ingresar al Dashboard del proyecto
+//////a/sddashboard coneccion
         return "redirect:/dashboard";
     }
 
