@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <title>Dashboard - FerreteríaWeb</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="p-4 mb-4 bg-white rounded-3 shadow-sm border-start border-4 border-warning">
+        <h1 class="display-6 fw-bold text-dark"><i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i>Bienvenido al Sistema FerreteríaWeb</h1>
+        <p class="lead text-muted">Módulo principal de control de inventario, herramientas, categorías y gestión de almacén.</p>
+    </div>
+
+    <!-- TARJETAS DE ACCESO RÁPIDO -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 bg-primary text-white">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-boxes-stacked fa-3x mb-3"></i>
+                    <h5 class="card-title">Inventario de Productos</h5>
+                    <p class="card-text">Consulta y mantenimiento de herramientas y materiales.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 bg-success text-white">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-truck-ramp-box fa-3x mb-3"></i>
+                    <h5 class="card-title">Proveedores</h5>
+                    <p class="card-text">Gestión de datos de las marcas proveedoras.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0 bg-dark text-white">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-users-gear fa-3x mb-3 text-warning"></i>
+                    <h5 class="card-title">Usuarios y Roles</h5>
+                    <p class="card-text">Administración de accesos de almaceneros y vendedores.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
