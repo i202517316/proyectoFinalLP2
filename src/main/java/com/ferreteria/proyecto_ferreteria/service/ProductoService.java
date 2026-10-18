@@ -1,4 +1,3 @@
-
 package com.ferreteria.proyecto_ferreteria.service;
 
 import java.math.BigDecimal;
@@ -8,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ferreteria.proyecto_ferreteria.dto.ProductoFilter;
+import com.ferreteria.proyecto_ferreteria.dto.ResultadoResponse;
 import com.ferreteria.proyecto_ferreteria.model.Producto;
 import com.ferreteria.proyecto_ferreteria.repository.ProductoRepository;
 
@@ -17,132 +17,125 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProductoService {
 
-    private final ProductoRepository productoRepository;
+	private final ProductoRepository productoRepository;
 
-    // Obtener todos los productos
-    @Transactional(readOnly = true)
-    public List<Producto> getAll() {
-        return productoRepository.findAll();
-    }
+	@Transactional(readOnly = true)
+	public List<Producto> getAll() {
+		return productoRepository.findAll();
+	}
 
-    // Buscar productos utilizando filtros opcionales
-    @Transactional(readOnly = true)
-    public List<Producto> search(ProductoFilter filter) {
+	@Transactional(readOnly = true)
+	public List<Producto> search(ProductoFilter filter) {
+		String descripcion = null;
+		Integer idCategoria = null;
+		Boolean activo = null;
 
-        String descripcion = filter.getDescripcion();
+		if (filter != null) {
+			if (filter.getDescripcion() != null && !filter.getDescripcion().trim().isEmpty()) {
+				descripcion = filter.getDescripcion().trim();
+			}
+			idCategoria = filter.getIdCategoria();
+			activo = filter.getActivo();
+		}
 
-        if (descripcion != null) {
-            descripcion = descripcion.trim();
+		return productoRepository.buscarProductos(descripcion, idCategoria, activo);
+	}
 
-            if (descripcion.isEmpty()) {
-                descripcion = null;
-            }
-        }
+	@Transactional(readOnly = true)
+	public Producto getOne(Integer id) {
+		return productoRepository.findById(id).orElse(null);
+	}
 
-        return productoRepository.buscarProductos(
-                descripcion,
-                filter.getIdCategoria(),
-                filter.getActivo()
-        );
-    }
+	@Transactional
+	public ResultadoResponse create(Producto producto) {
+		try {
+			validarProducto(producto);
+			producto.setIdProducto(null);
+			if (producto.getActivo() == null) {
+				producto.setActivo(true);
+			}
 
-    // Obtener un producto por su identificador
-    @Transactional(readOnly = true)
-    public Producto getOne(Integer id) {
-        return productoRepository.findById(id)
-                .orElseThrow(() ->
-                    new IllegalArgumentException(
-                        "Producto no encontrado: " + id
-                    )
-                );
-    }
+			var guardado = productoRepository.save(producto);
+			var mensaje = String.format("Producto '%s' registrado exitosamente con ID %d", 
+					guardado.getDescripcion(), guardado.getIdProducto());
 
-    // Registrar un nuevo producto
-    @Transactional
-    public Producto create(Producto producto) {
+			return new ResultadoResponse(true, mensaje);
+		} catch (IllegalArgumentException e) {
+			return new ResultadoResponse(false, e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResultadoResponse(false, "Error al registrar el producto: " + e.getMessage());
+		}
+	}
 
-        validarProducto(producto);
+	@Transactional
+	public ResultadoResponse update(Producto producto) {
+		try {
+			if (producto.getIdProducto() == null) {
+				return new ResultadoResponse(false, "El ID del producto es obligatorio");
+			}
 
-        producto.setIdProducto(null);
+			validarProducto(producto);
 
-        if (producto.getActivo() == null) {
-            producto.setActivo(true);
-        }
+			var existente = getOne(producto.getIdProducto());
+			if (existente == null) {
+				return new ResultadoResponse(false, "Producto no encontrado");
+			}
 
-        return productoRepository.save(producto);
-    }
+			existente.setDescripcion(producto.getDescripcion());
+			existente.setStock(producto.getStock());
+			existente.setPrecio(producto.getPrecio());
+			existente.setCategoria(producto.getCategoria());
+			existente.setProveedor(producto.getProveedor());
 
-    // Actualizar un producto existente
-    @Transactional
-    public Producto update(Integer id, Producto datos) {
+			productoRepository.save(existente);
+			var mensaje = String.format("Producto con ID %d actualizado exitosamente", producto.getIdProducto());
 
-        Producto producto = getOne(id);
+			return new ResultadoResponse(true, mensaje);
+		} catch (IllegalArgumentException e) {
+			return new ResultadoResponse(false, e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResultadoResponse(false, "Error al actualizar el producto: " + e.getMessage());
+		}
+	}
 
-        validarProducto(datos);
+	@Transactional
+	public ResultadoResponse changeActive(Integer id) {
+		try {
+			var producto = getOne(id);
+			if (producto == null) {
+				return new ResultadoResponse(false, "Producto no encontrado");
+			}
 
-        producto.setDescripcion(datos.getDescripcion());
-        producto.setStock(datos.getStock());
-        producto.setPrecio(datos.getPrecio());
-        producto.setCategoria(datos.getCategoria());
-        producto.setProveedor(datos.getProveedor());
+			producto.setActivo(!Boolean.TRUE.equals(producto.getActivo()));
+			productoRepository.save(producto);
 
-        return productoRepository.save(producto);
-    }
+			var estado = Boolean.TRUE.equals(producto.getActivo()) ? "activado" : "inactivado";
+			var mensaje = String.format("Producto con ID %d %s correctamente", id, estado);
 
-    // Cambiar el estado activo / inactivo
-    @Transactional
-    public Producto changeActive(Integer id) {
+			return new ResultadoResponse(true, mensaje);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResultadoResponse(false, "Hubo un error al cambiar el estado del producto");
+		}
+	}
 
-        Producto producto = getOne(id);
-
-        producto.setActivo(
-                !Boolean.TRUE.equals(producto.getActivo())
-        );
-
-        return productoRepository.save(producto);
-    }
-
-    // Validaciones de la lógica de negocio
-    private void validarProducto(Producto producto) {
-
-        if (producto == null) {
-            throw new IllegalArgumentException(
-                "Los datos del producto son obligatorios"
-            );
-        }
-
-        if (producto.getDescripcion() == null
-                || producto.getDescripcion().trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                "La descripción es obligatoria"
-            );
-        }
-
-        producto.setDescripcion(
-                producto.getDescripcion().trim()
-        );
-
-        if (producto.getDescripcion().length() > 45) {
-            throw new IllegalArgumentException(
-                "La descripción no puede superar 45 caracteres"
-            );
-        }
-
-        if (producto.getStock() == null
-                || producto.getStock() < 0) {
-
-            throw new IllegalArgumentException(
-                "El stock no puede ser negativo"
-            );
-        }
-
-        if (producto.getPrecio() == null
-                || producto.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
-
-            throw new IllegalArgumentException(
-                "El precio debe ser mayor que cero"
-            );
-        }
-    }
+	private void validarProducto(Producto producto) {
+		if (producto == null) {
+			throw new IllegalArgumentException("Los datos del producto son obligatorios");
+		}
+		if (producto.getDescripcion() == null || producto.getDescripcion().trim().isEmpty()) {
+			throw new IllegalArgumentException("La descripción es obligatoria");
+		}
+		if (producto.getDescripcion().trim().length() > 45) {
+			throw new IllegalArgumentException("La descripción no puede superar 45 caracteres");
+		}
+		if (producto.getStock() == null || producto.getStock() < 0) {
+			throw new IllegalArgumentException("El stock no puede ser negativo");
+		}
+		if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+			throw new IllegalArgumentException("El precio debe ser mayor que cero");
+		}
+	}
 }

@@ -11,6 +11,6 @@ public class HomeController {
     @GetMapping("/dashboard")
     public String dashboard() {
         // Retorna la vista templates/home/dashboard.html
-        return "home/dashboard"; 
+        return "/home/dashboard"; 
     }
 }

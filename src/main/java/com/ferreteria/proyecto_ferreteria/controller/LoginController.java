@@ -1,4 +1,3 @@
-
 package com.ferreteria.proyecto_ferreteria.controller;
 
 import org.springframework.stereotype.Controller;
@@ -8,8 +7,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.ferreteria.proyecto_ferreteria.dto.AutenticacionFilter;
-import com.ferreteria.proyecto_ferreteria.model.Usuario;
 import com.ferreteria.proyecto_ferreteria.service.AutenticacionService;
+import com.ferreteria.proyecto_ferreteria.util.Alert;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -18,61 +17,49 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LoginController {
 
-    private final AutenticacionService autenticacionService;
+	private final AutenticacionService autenticacionService;
 
-    @GetMapping("/")
-    public String root(Model model) {
-        model.addAttribute(
-            "filter",
-            new AutenticacionFilter(null, null)
-        );
+	@GetMapping("/")
+	public String root(Model model) {
+		model.addAttribute("filter", new AutenticacionFilter(null, null));
+		return "login";
+	}
 
-        return "login";
-    }
+	@GetMapping("iniciar-sesion")
+	public String iniciarSesion(@ModelAttribute AutenticacionFilter filter, RedirectAttributes flash,
+			HttpSession session) {
 
-    @GetMapping("/iniciar-sesion")
-    public String iniciarSesion(
-            @ModelAttribute("filter") AutenticacionFilter filter,
-            RedirectAttributes flash,
-            HttpSession session) {
+		var usuario = autenticacionService.autenticathe(filter);
 
-        Usuario usuario = autenticacionService.autenticathe(filter);
+		// validamos si las credenciales son correctas
+		if (usuario == null) {
+			var alert = Alert.sweetAlertError("Cuenta y/o clave inválidos");
+			flash.addFlashAttribute("alert", alert);
+			return "redirect:/";
+		}
 
-        ////////////////////////////sver usuario verificar
-        if (usuario == null) {
-            flash.addFlashAttribute(
-                "mensaje",
-                "Cuenta o contraseña incorrectas."
-            );
-            return "redirect:/";
-        }
+		// validamos si el usuario está activo
+		if (!Boolean.TRUE.equals(usuario.getActivo())) {
+			var alert = Alert.sweetAlertError("Usuario inactivado, comunicarse con el administrador");
+			flash.addFlashAttribute("alert", alert);
+			return "redirect:/";
+		}
 
-        ///////////////////////////
-        if (!Boolean.TRUE.equals(usuario.getActivo())) {
-            flash.addFlashAttribute(
-                "mensaje",
-                "Tu usuario está inactivo. Comunícate con el administrador."
-            );
-            return "redirect:/";
-        }
+		session.setAttribute("idUsuario", usuario.getIdUsuario());
+		session.setAttribute("fullName", usuario.getFullName());
+		if (usuario.getTipo() != null) {
+			session.setAttribute("idTipo", usuario.getTipo().getIdTipo());
+		}
 
-        session.setAttribute("idUsuario", usuario.getIdUsuario());
-        session.setAttribute("fullName", usuario.getFullName());
+		String alert = Alert.sweetAlertSuccess("Bienvenido a FerreteríaWeb, " + usuario.getFullName());
+		flash.addFlashAttribute("alert", alert);
 
-        if (usuario.getTipo() != null) {
-            session.setAttribute(
-                "idTipo",
-                usuario.getTipo().getIdTipo()
-            );
-        }
+		return "redirect:/home/dashboard";
+	}
 
-//////a/sddashboard coneccion
-        return "redirect:/dashboard";
-    }
-
-    @GetMapping("/cerrar-sesion")
-    public String cerrarSesion(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
-    }
+	@GetMapping("cerrar-sesion")
+	public String cerrarSesion(HttpSession session) {
+		session.invalidate();
+		return "redirect:/";
+	}
 }

@@ -13,7 +13,7 @@ public interface ProductoRepository
         extends JpaRepository<Producto, Integer> {
 
     @Query("""
-        SELECT p FROM Producto p
+      SELECT p FROM Producto p
         WHERE (:descripcion IS NULL
                OR LOWER(p.descripcion) LIKE
                LOWER(CONCAT('%', :descripcion, '%')))
@@ -21,11 +21,13 @@ public interface ProductoRepository
                OR p.categoria.idCategoria = :idCategoria)
           AND (:activo IS NULL
                OR p.activo = :activo)
+        ORDER BY p.idProducto DESC
         """)
     List<Producto> buscarProductos(
             @Param("descripcion") String descripcion,
             @Param("idCategoria") Integer idCategoria,
             @Param("activo") Boolean activo
     );
+    
 
 }

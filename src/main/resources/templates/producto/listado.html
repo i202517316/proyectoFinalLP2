@@ -1,109 +1,113 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-	layout:decorate="~{layouts/layout}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layouts/layout :: layoutBase(~{::contenido},~{::contentAside})">
 
-<head>
-	<title>Listado de Productos - Ferretería</title>
-</head>
-
-<body>
-
-	<div layout:fragment="content">
-		<div class="card shadow-sm mb-4">
-			<div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-				<h5 class="mb-0"><i class="fa-solid fa-boxes-stacked me-2"></i>Gestión de Productos</h5>
-				<a th:href="@{/producto/nuevo}" class="btn btn-warning btn-sm fw-bold">
-					<i class="fa-solid fa-plus"></i> Nuevo Producto
-				</a>
+<div th:fragment="contenido">
+	<div class="card shadow-lg">
+		<div class="card-body">
+			<div class="row">
+				<div class="col-md-10">
+					<h1 class="card-title">Listado de productos</h1>
+				</div>
+				<div class="col-md-2">
+					<a th:href="@{/producto/nuevo}" class="btn btn-success w-100"> <i class="fa-solid fa-plus"></i>
+						Nuevo
+					</a>
+				</div>
 			</div>
 
-			<div class="card-body">
-				<div class="alert alert-success alert-dismissible fade show" th:if="${mensaje}">
-					<span th:text="${mensaje}"></span>
-					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-				</div>
-				<div class="alert alert-danger alert-dismissible fade show" th:if="${error}">
-					<span th:text="${error}"></span>
-					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-				</div>
+			<div class="mb-3">
+				<fieldset class="border border-2 border-dark px-2 pb-2">
+					<legend class="float-none w-auto px-2">Filtros</legend>
+					<form th:action="@{/producto/listado}" method="get" th:object="${filter}">
+						<div class="row align-items-end">
+							<div class="col-md-4">
+								<label for="descripcion" class="form-label">Descripción</label>
+								<div class="input-group">
+									<span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+									<input type="text" class="form-control" placeholder="Buscar por descripción..."
+										th:field="*{descripcion}">
+								</div>
+							</div>
+							<div class="col-md-3">
+								<label for="idCategoria" class="form-label">Categoría</label>
+								<div class="input-group">
+									<span class="input-group-text"><i class="fa-solid fa-chalkboard-user"></i></span>
+									<select class="form-select" th:field="*{idCategoria}">
+										<option value="">--Todos--</option>
+										<option th:each="item: ${lstCategorias}" th:value="${item.idCategoria}"
+											th:text="${item.descripcion}"></option>
+									</select>
+								</div>
+							</div>
+							<div class="col-md-2">
+								<label for="activo" class="form-label">Estado</label>
+								<select class="form-select" th:field="*{activo}">
+									<option value="">--Todos--</option>
+									<option value="true">Activo</option>
+									<option value="false">Inactivo</option>
+								</select>
+							</div>
+							<div class="col text-end">
+								<button type="submit" class="btn btn-outline-dark">
+									<i class="fa-solid fa-binoculars"></i> Buscar
+								</button>
+								<a th:href="@{/producto/listado}" class="btn btn-outline-secondary">
+									<i class="fa-solid fa-broom"></i> Limpiar
+								</a>
+							</div>
+						</div>
+					</form>
+				</fieldset>
+			</div>
 
-				<form th:action="@{/producto/listado}" method="get" th:object="${filter}" class="row g-3 mb-4">
-					<div class="col-md-4">
-						<input type="text" class="form-control" placeholder="Buscar por descripción..."
-							th:field="*{descripcion}">
-					</div>
-					<div class="col-md-3">
-						<select class="form-select" th:field="*{idCategoria}">
-							<option value="">[Todas las Categorías]</option>
-							<option th:each="cat : ${categorias}" th:value="${cat.idCategoria}"
-								th:text="${cat.descripcion}"></option>
-						</select>
-					</div>
-					<div class="col-md-3">
-						<select class="form-select" th:field="*{activo}">
-							<option value="">[Todos los Estados]</option>
-							<option value="true">Activos</option>
-							<option value="false">Inactivos</option>
-						</select>
-					</div>
-					<div class="col-md-2 d-grid">
-						<button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i>
-							Buscar</button>
-					</div>
-				</form>
-
-				<div class="table-responsive">
-					<table class="table table-bordered table-hover align-middle">
-						<thead class="table-light text-center">
-							<tr>
-								<th>ID</th>
-								<th>Descripción</th>
-								<th>Categoría</th>
-								<th>Proveedor</th>
-								<th>Stock</th>
-								<th>Precio</th>
-								<th>Estado</th>
-								<th>Acciones</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="prod : ${productos}" class="text-center">
-								<td th:text="${prod.idProducto}"></td>
-								<td class="text-start" th:text="${prod.descripcion}"></td>
-								<td th:text="${prod.categoria != null ? prod.categoria.descripcion : '-'}"></td>
-								<td th:text="${prod.proveedor != null ? prod.proveedor.razonSocial : '-'}"></td>
-								<td th:text="${prod.stock}"></td>
-								<td th:text="'S/ ' + ${prod.precio}"></td>
-								<td>
-									<span class="badge" th:classappend="${prod.activo} ? 'bg-success' : 'bg-danger'"
-										th:text="${prod.activoDescripcion}"></span>
-								</td>
-								<td>
-									<a th:href="@{/producto/edicion/{id}(id=${prod.idProducto})}"
-										class="btn btn-info btn-sm" title="Editar">
-										<i class="fa-solid fa-pen-to-square"></i>
-									</a>
-									<form th:action="@{/producto/cambiar-activo/{id}(id=${prod.idProducto})}"
-										method="post" class="d-inline">
-										<button type="submit" class="btn btn-sm"
-											th:classappend="${prod.activo} ? 'btn-danger' : 'btn-success'"
-											th:title="${prod.activo} ? 'Desactivar' : 'Activar'">
-											<i class="fa-solid fa-power-off"></i>
-										</button>
-									</form>
-								</td>
-							</tr>
-							<tr th:if="${#lists.isEmpty(productos)}">
-								<td colspan="8" class="text-center text-muted py-3">No se encontraron productos
-									registrados.</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
+			<div class="table-responsive overflow-auto" style="max-height: 70vh;">
+				<table class="table table-hover">
+					<thead class="table-dark text-center">
+						<tr class="position-sticky top-0">
+							<th>Id</th>
+							<th>Descripción</th>
+							<th>Stock</th>
+							<th>Precio</th>
+							<th>Categoría</th>
+							<th>Proveedor</th>
+							<th>Activo</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody class="table-secondary">
+						<tr th:each="item:${lstProductos}">
+							<td th:text="${item.idProducto}" class="text-center"></td>
+							<td th:text="${item.descripcion}"></td>
+							<td th:text="${item.stock}" class="text-end"></td>
+							<td th:text="'S/. ' + ${item.precio}" class="text-end"></td>
+							<td th:text="${item.categoria != null ? item.categoria.descripcion : '-'}"></td>
+							<td th:text="${item.proveedor != null ? item.proveedor.razonSocial : '-'}"></td>
+							<td>
+								<span class="badge" th:classappend="${item.activo} ? 'bg-success' : 'bg-secondary'"
+									th:text="${item.activoDescripcion}">
+								</span>
+							</td>
+							<td class="d-flex justify-content-evenly align-items-center text-center">
+								<a th:href="@{/producto/edicion/{id}(id=${item.idProducto})}"
+									class="btn btn-outline-primary" title="Editar" aria-label="Editar" role="button">
+									<i class="fa-regular fa-pen-to-square"></i>
+								</a>
+								<form method="post" th:action="@{/producto/cambiar-activo}">
+									<div class="form-switch">
+										<input type="hidden" name="id" th:value="${item.idProducto}">
+										<input th:checked="${item.activo}" class="form-check-input" type="checkbox"
+											onchange="this.form.submit()">
+									</div>
+								</form>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
+</div>
 
-</body>
+<div th:fragment="contentAside">
+</div>
 
 </html>
