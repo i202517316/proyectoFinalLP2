@@ -1,0 +1,53 @@
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layouts/layout :: layoutBase(~{::contenido}, ~{::contentAside})">
+
+<div th:fragment="contenido">
+
+	<div class="card shadow-lg">
+		<div class="card-body">
+			<h1 class="card-title text-center">Proveedor Edición</h1>
+			<div class="row d-flex justify-content-center">
+				<div class="col-md-6">
+					<form th:action="@{/proveedor/guardar}" class="row g-2" method="post" novalidate
+						th:object="${proveedor}">
+						<input type="hidden" th:field="*{idProveedor}">
+
+						<div class="col-md-12 position-relative">
+							<label for="razonSocial" class="form-label"> Razón Social </label>
+							<input type="text" class="form-control" placeholder="Ingrese una razón social"
+								th:field="*{razonSocial}" required>
+						</div>
+						<div class="col-md-6 position-relative">
+							<label for="celular" class="form-label">Celular</label>
+							<div class="input-group">
+								<span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
+								<input class="form-control" type="text" placeholder="Ej: 987654321" th:field="*{celular}" required>
+							</div>
+						</div>
+						<div class="col-md-6 position-relative">
+							<label for="email" class="form-label">Email</label>
+							<div class="input-group">
+								<span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+								<input class="form-control" type="email" placeholder="correo@empresa.pe" th:field="*{email}" required>
+							</div>
+						</div>
+						<div class="col-md-12 d-flex justify-content-between mt-3">
+							<!-- Botón Regresar -->
+							<a th:href="@{/proveedor/listado}" class="btn btn-outline-dark">
+								<i class="fa-solid fa-reply"></i> Regresar
+							</a>
+							<!-- Botón Guardar -->
+							<button type="submit" class="btn btn-primary">
+								<i class="fa-solid fa-floppy-disk"></i> Guardar
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<div th:fragment="contentAside"></div>
+
+</html>
