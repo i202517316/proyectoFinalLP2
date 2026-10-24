@@ -120,3 +120,85 @@ INSERT INTO tbl_producto VALUES (NULL, 'Thinner estándar 1 litro', 40, 9.00, 0,
 -- Fijaciones y Tornillería (id_categoria = 6)
 INSERT INTO tbl_producto VALUES (NULL, 'Tarugos de plástico 3/8 cj x 100', 80, 8.50, 1, 6, 1);
 INSERT INTO tbl_producto VALUES (NULL, 'Tornillos autorroscantes 1 pulg x 100', 110, 11.50, 1, 6, 1);
+
+
+-- ------------------------------------------------------------
+-- 6. Tabla de Clientes
+-- ------------------------------------------------------------
+CREATE TABLE tbl_cliente (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    nombres VARCHAR(45) NOT NULL,
+    apellidos VARCHAR(45) NOT NULL,
+    dni CHAR(8) NOT NULL UNIQUE CHECK (dni REGEXP '^[0-9]{8}$'),
+    celular CHAR(9) NOT NULL CHECK (celular REGEXP '^9[0-9]{8}$'),
+    activo BIT DEFAULT 1
+);
+
+INSERT INTO tbl_cliente VALUES (NULL, 'Carlos', 'Ramirez Torres', '74851236', '987654321', DEFAULT);
+INSERT INTO tbl_cliente VALUES (NULL, 'Maria', 'Gonzales Perez', '62547891', '912345678', DEFAULT);
+INSERT INTO tbl_cliente VALUES (NULL, 'Luis', 'Fernandez Rojas', '85123647', '965874123', DEFAULT);
+INSERT INTO tbl_cliente VALUES (NULL, 'Ana', 'Torres Mendoza', '71234567', '945123789', DEFAULT);
+
+-- ------------------------------------------------------------
+-- 7. Tabla Cabecera de Boleta (Transacción de Ventas)
+-- ------------------------------------------------------------
+CREATE TABLE tbl_cab_boleta(
+    num_boleta INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_usuario INT NOT NULL,
+    id_cliente INT NOT NULL,
+    CONSTRAINT fk_boleta_usuario FOREIGN KEY (id_usuario) REFERENCES tbl_usuario(id_usuario),
+    CONSTRAINT fk_boleta_cliente FOREIGN KEY (id_cliente) REFERENCES tbl_cliente(id_cliente)
+);
+
+-- ------------------------------------------------------------
+-- 8. Tabla Detalle de Boleta
+-- ------------------------------------------------------------
+CREATE TABLE tbl_det_boleta(
+    num_boleta INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_venta DECIMAL(8,2) NOT NULL,
+    PRIMARY KEY (num_boleta, id_producto),
+    CONSTRAINT fk_det_boleta_cab FOREIGN KEY (num_boleta) REFERENCES tbl_cab_boleta(num_boleta),
+    CONSTRAINT fk_det_boleta_prod FOREIGN KEY (id_producto) REFERENCES tbl_producto(id_producto)
+);
+
+-- ------------------------------------------------------------
+-- 9. Vistas para Reportes de Boleta (JasperReports)
+-- ------------------------------------------------------------
+DROP VIEW IF EXISTS v_header_boleta;
+CREATE VIEW v_header_boleta AS
+SELECT
+    cab.num_boleta AS num_boleta,
+    CONCAT('B001 - ', LPAD(cab.num_boleta, 8, '0')) AS numBoletaText,
+    CONCAT(usu.nombres, ' ', usu.apellidos) AS usuario,
+    CONCAT(cli.nombres, ' ', cli.apellidos) AS cliente,
+    DATE_FORMAT(cab.fecha_registro, '%d/%m/%Y %h:%i:%s %p') AS fechaText
+FROM tbl_cab_boleta AS cab
+INNER JOIN tbl_usuario AS usu
+    ON cab.id_usuario = usu.id_usuario
+INNER JOIN tbl_cliente AS cli
+    ON cab.id_cliente = cli.id_cliente;
+
+DROP VIEW IF EXISTS v_detail_boleta;
+CREATE VIEW v_detail_boleta AS
+SELECT
+    det.num_boleta AS num_boleta,
+    det.id_producto AS id_producto,
+    pro.descripcion AS descripcion,
+    det.cantidad AS cantidad,
+    det.precio_venta AS precio_venta,
+    (det.cantidad * det.precio_venta) AS sub_total
+FROM tbl_det_boleta AS det
+INNER JOIN tbl_producto AS pro
+    ON det.id_producto = pro.id_producto;
+
+-- Datos iniciales de prueba para Boletas
+INSERT INTO tbl_cab_boleta VALUES (1, NOW(), 1, 1);
+INSERT INTO tbl_det_boleta VALUES (1, 1, 2, 28.50);
+INSERT INTO tbl_det_boleta VALUES (1, 13, 1, 4.50);
+
+INSERT INTO tbl_cab_boleta VALUES (2, NOW(), 2, 2);
+INSERT INTO tbl_det_boleta VALUES (2, 5, 1, 189.90);
+INSERT INTO tbl_det_boleta VALUES (2, 8, 3, 9.50);

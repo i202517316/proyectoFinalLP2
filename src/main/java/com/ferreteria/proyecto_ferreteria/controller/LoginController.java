@@ -46,9 +46,12 @@ public class LoginController {
 		}
 
 		session.setAttribute("idUsuario", usuario.getIdUsuario());
+		session.setAttribute("ID_USUARIO", usuario.getIdUsuario());
 		session.setAttribute("fullName", usuario.getFullName());
+		session.setAttribute("FULL_NAME", usuario.getFullName());
 		if (usuario.getTipo() != null) {
 			session.setAttribute("idTipo", usuario.getTipo().getIdTipo());
+			session.setAttribute("ID_TIPO", usuario.getTipo().getIdTipo());
 		}
 
 		String alert = Alert.sweetAlertSuccess("Bienvenido a FerreteríaWeb, " + usuario.getFullName());

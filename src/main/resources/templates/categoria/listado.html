@@ -1,0 +1,49 @@
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layouts/layout :: layoutBase(~{::contenido},~{::contentAside})">
+
+<div th:fragment="contenido">
+	<div class="card shadow-lg">
+		<div class="card-body">
+			<div class="row mb-3">
+				<div class="col-md-10">
+					<h1 class="card-title">Listado de Categorías</h1>
+				</div>
+				<div class="col-md-2">
+					<a th:href="@{/categoria/nuevo}" class="btn btn-success w-100">
+						<i class="fa-solid fa-plus"></i> Nueva
+					</a>
+				</div>
+			</div>
+
+			<div class="table-responsive">
+				<table class="table table-hover table-striped table-bordered align-middle">
+					<thead class="table-dark text-center">
+						<tr>
+							<th style="width: 20%;">ID</th>
+							<th style="width: 60%;">Descripción</th>
+							<th style="width: 20%;">Acciones</th>
+						</tr>
+					</thead>
+					<tbody class="table-secondary">
+						<tr th:each="item : ${lstCategorias}">
+							<td th:text="${item.idCategoria}" class="text-center fw-bold"></td>
+							<td th:text="${item.descripcion}"></td>
+							<td class="text-center">
+								<a th:href="@{/categoria/edicion/{id}(id=${item.idCategoria})}"
+									class="btn btn-outline-primary btn-sm" title="Editar">
+									<i class="fa-regular fa-pen-to-square"></i> Editar
+								</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<th:block th:utext="${alert}"></th:block>
+</div>
+
+<div th:fragment="contentAside">
+</div>
+
+</html>
