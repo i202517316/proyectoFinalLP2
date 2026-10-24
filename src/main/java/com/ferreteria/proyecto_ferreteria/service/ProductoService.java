@@ -25,6 +25,11 @@ public class ProductoService {
 	}
 
 	@Transactional(readOnly = true)
+	public List<Producto> getAllActive() {
+		return productoRepository.findAllByActivoTrue();
+	}
+
+	@Transactional(readOnly = true)
 	public List<Producto> search(ProductoFilter filter) {
 		String descripcion = null;
 		Integer idCategoria = null;

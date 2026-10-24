@@ -1,4 +1,3 @@
-
 package com.ferreteria.proyecto_ferreteria.repository;
 
 import java.util.List;
@@ -11,6 +10,8 @@ import com.ferreteria.proyecto_ferreteria.model.Producto;
 
 public interface ProductoRepository
         extends JpaRepository<Producto, Integer> {
+
+    List<Producto> findAllByActivoTrue();
 
     @Query("""
       SELECT p FROM Producto p
@@ -28,6 +29,4 @@ public interface ProductoRepository
             @Param("idCategoria") Integer idCategoria,
             @Param("activo") Boolean activo
     );
-    
-
 }
